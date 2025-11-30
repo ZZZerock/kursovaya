@@ -1,48 +1,259 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Библиотечная система</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная - Библиотека</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            flex-direction: column;
         }
-        .menu {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .menu a {
-            display: block;
-            padding: 15px;
-            margin: 10px 0;
-            background: #007bff;
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .logo span {
+            font-size: 2rem;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 18px;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
-        .menu a:hover {
-            background: #0056b3;
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 4rem;
+            color: white;
+        }
+
+        .welcome-section h2 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .welcome-section p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.5rem;
+            margin-top: 2rem;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .menu-card h3 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .menu-card p {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .menu-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-books {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+        .card-add {
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+        }
+        .card-users {
+            background: linear-gradient(135deg, #834d9b, #d04ed6);
+            color: white;
+        }
+        .card-stats {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .card-books p, .card-add p, .card-users p, .card-stats p {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .card-books:hover, .card-add:hover, .card-users:hover, .card-stats:hover {
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-section h2 {
+                font-size: 2.5rem;
+            }
+
+            .welcome-section p {
+                font-size: 1.2rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .menu-card {
+                padding: 2rem 1.5rem;
+                min-height: 180px;
+            }
+
+            .menu-card h3 {
+                font-size: 1.5rem;
+            }
+
+            .menu-card p {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-<h1>📚 Библиотечная система</h1>
-
-<div class="menu">
-    <a href="/books">📖 Список книг</a>
-    <a href="/books/new">➕ Добавить книгу</a>
-    <a href="#" style="background: #6c757d;">👥 Читатели (скоро)</a>
-    <a href="#" style="background: #6c757d;">📋 Выдачи книг (скоро)</a>
+<!-- Шапка -->
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <h1><span>📚</span> Библиотечная система</h1>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="logout-btn">🚪 Выйти</button>
+        </form>
+    </div>
 </div>
 
-<div style="margin-top: 30px; color: #666;">
-    <p>Система управления библиотекой v1.0</p>
+<!-- Основной контент -->
+<div class="main-content">
+    <div class="welcome-section">
+        <h2>Добро пожаловать в библиотечную систему!</h2>
+        <p>Выберите нужный раздел для работы</p>
+    </div>
+
+    <div class="menu-grid">
+        <a th:href="@{/books}" class="menu-card card-books">
+            <div class="menu-icon">📖</div>
+            <h3>Каталог книг</h3>
+            <p>Просмотр и поиск книг в библиотеке</p>
+        </a>
+
+        <a th:href="@{/books/new}" class="menu-card card-add">
+            <div class="menu-icon">➕</div>
+            <h3>Добавить книгу</h3>
+            <p>Добавление новых книг в каталог</p>
+        </a>
+
+        <a th:href="@{/readers}" class="menu-card card-users">
+            <div class="menu-icon">👥</div>
+            <h3>Управление читателями</h3>
+            <p>Регистрация и управление читателями</p>
+        </a>
+
+        <a th:href="@{/statistics}" class="menu-card card-stats">
+            <div class="menu-icon">📊</div>
+            <h3>Статистика</h3>
+            <p>Статистика по книгам и читателям</p>
+        </a>
+    </div>
 </div>
 </body>
 </html>

@@ -6,6 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/books")
@@ -19,7 +20,24 @@ public class BookController {
     public String listBooks(Model model) {
         List<Book> books = bookRepository.findAll();
         model.addAttribute("books", books);
-        return "books"; // будет искать books.html
+
+        // Подсчет доступных книг
+        long availableBooksCount = books.stream()
+                .filter(book -> book.getAvailableCount() > 0)
+                .count();
+        model.addAttribute("availableBooksCount", availableBooksCount);
+
+        // Получение уникальных жанров
+        List<String> genres = books.stream()
+                .map(Book::getGenre)
+                .filter(genre -> genre != null && !genre.trim().isEmpty())
+                .map(genre -> genre.trim())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        model.addAttribute("genres", genres);
+
+        return "books";
     }
 
     // Форма для добавления новой книги
