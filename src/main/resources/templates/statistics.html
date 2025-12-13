@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - Библиотека</title>
+    <!-- Подключаем Chart.js для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .logo span {
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: white;
+            color: #11998e;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #11998e;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+            border-color: transparent;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .page-title h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 3rem;
+        }
+
+        /* Статистика - две строки */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-bottom {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            border: 1px solid #f0f0f0;
+        }
+
+        .stat-card h3 {
+            color: #11998e;
+            margin-bottom: 1.5rem;
+            font-size: 1.6rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #11998e;
+            display: block;
+            margin: 1.2rem 0;
+            background: #f8f9fa;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            border-radius: 50%;
+            margin: 1.5rem auto;
+            border: 3px solid #e9f9f6;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.2rem;
+            font-weight: 500;
+            display: block;
+            margin-top: 0.8rem;
+        }
+
+        /* Детали статистики */
+        .stat-details {
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.05rem;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-row-label {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .stat-row-value {
+            font-weight: bold;
+            color: #11998e;
+            font-size: 1.2rem;
+        }
+
+        .overdue {
+            color: #dc3545 !important;
+        }
+
+        /* Жанры */
+        .genre-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0 0 0;
+        }
+
+        .genre-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+        }
+
+        .genre-item:last-child {
+            border-bottom: none;
+        }
+
+        .genre-name {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .genre-count {
+            background: #11998e;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Графики */
+        .charts-section {
+            margin-top: 4rem;
+        }
+
+        .charts-section h3 {
+            color: #11998e;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            height: 400px;
+        }
+
+        .chart-title {
+            color: #11998e;
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stats-bottom {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .page-title h2 {
+                font-size: 2rem;
+            }
+
+            .content-card {
+                padding: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 2rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+                width: 85px;
+                height: 85px;
+                line-height: 85px;
+            }
+
+            .stat-label {
+                font-size: 1.1rem;
+            }
+
+            .stat-row {
+                font-size: 1rem;
+            }
+
+            .chart-container {
+                padding: 1.5rem;
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <h1><span>📚</span> Библиотечная система</h1>
+        </div>
+        <div class="header-actions">
+            <a href="/" class="back-btn">← Назад в меню</a>
+            <form action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="logout-btn">🚪 Выйти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="page-title">
+        <h2>📊 Статистика</h2>
+        <p style="font-size: 1.3rem; opacity: 0.9;">Общая статистика библиотеки</p>
+    </div>
+
+    <div class="content-card">
+        <!-- Верхняя строка - 3 карточки -->
+        <div class="stats-grid">
+            <!-- Книги -->
+            <div class="stat-card">
+                <h3>📚 Книги</h3>
+                <span class="stat-number" th:text="${totalBooks}">0</span>
+                <span class="stat-label">всего книг в каталоге</span>
+
+                <div class="stat-details">
+                    <div class="stat-row">
+                        <span class="stat-row-label">Доступно для выдачи</span>
+                        <span class="stat-row-value" th:text="${totalAvailableBooks}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Выдано читателям</span>
+                        <span class="stat-row-value" th:text="${totalRentedBooks}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пользователи -->
+            <div class="stat-card">
+                <h3>👥 Пользователи</h3>
+                <span class="stat-number" th:text="${totalUsers}">0</span>
+                <span class="stat-label">всего пользователей</span>
+
+                <div class="stat-details">
+                    <div class="stat-row">
+                        <span class="stat-row-label">Администраторов</span>
+                        <span class="stat-row-value" th:text="${adminUsers}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Библиотекарей</span>
+                        <span class="stat-row-value" th:text="${librarianUsers}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Читателей</span>
+                        <span class="stat-row-value" th:text="${readerUsers}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Читатели -->
+            <div class="stat-card">
+                <h3>👤 Читатели</h3>
+                <span class="stat-number" th:text="${totalReaders}">0</span>
+                <span class="stat-label">зарегистрировано читателей</span>
+            </div>
+        </div>
+
+        <!-- Нижняя строка - 2 карточки -->
+        <div class="stats-bottom">
+            <!-- Аренды -->
+            <div class="stat-card">
+                <h3>🔄 Аренды</h3>
+                <span class="stat-number" th:text="${totalRentals}">0</span>
+                <span class="stat-label">всего выдач книг</span>
+
+                <div class="stat-details">
+                    <div class="stat-row">
+                        <span class="stat-row-label">Активные аренды</span>
+                        <span class="stat-row-value" th:text="${activeRentals}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Просроченные</span>
+                        <span class="stat-row-value overdue" th:text="${overdueRentals}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-row-label">Возвращенные</span>
+                        <span class="stat-row-value" th:text="${returnedRentals}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Жанры (с сортировкой по убыванию) -->
+            <div class="stat-card">
+                <h3>🏷️ Распределение по жанрам</h3>
+                <ul class="genre-list" style="max-height: 350px; overflow-y: auto;">
+                    <li class="genre-item" th:each="entry : ${genreStats}">
+                        <span class="genre-name" th:text="${entry.key}">Жанр</span>
+                        <span class="genre-count" th:text="${entry.value}">0</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Графики -->
+    <div class="content-card charts-section">
+        <h3>📈 Визуализация данных</h3>
+
+        <div class="charts-grid">
+            <!-- График 1: Распределение пользователей по ролям -->
+            <div class="chart-container">
+                <div class="chart-title">👥 Пользователи по ролям</div>
+                <canvas id="usersChart"></canvas>
+            </div>
+
+            <!-- График 2: Распределение книг (доступно/выдано) -->
+            <div class="chart-container">
+                <div class="chart-title">📚 Статус книг</div>
+                <canvas id="booksChart"></canvas>
+            </div>
+
+            <!-- График 3: Статус аренд -->
+            <div class="chart-container">
+                <div class="chart-title">🔄 Статус аренд</div>
+                <canvas id="rentalsChart"></canvas>
+            </div>
+
+            <!-- График 4: Топ жанров -->
+            <div class="chart-container">
+                <div class="chart-title">🏆 Топ жанров</div>
+                <canvas id="genresChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('=== НАЧАЛО ГРАФИКОВ ===');
+
+        // 1. Получаем данные напрямую из Thymeleaf
+        const adminUsers = [[${adminUsers}]] || 0;
+        const librarianUsers = [[${librarianUsers}]] || 0;
+        const readerUsers = [[${readerUsers}]] || 0;
+
+        const totalAvailableBooks = [[${totalAvailableBooks}]] || 0;
+        const totalRentedBooks = [[${totalRentedBooks}]] || 0;
+        const totalBooks = [[${totalBooks}]] || 0;
+
+        const activeRentals = [[${activeRentals}]] || 0;
+        const overdueRentals = [[${overdueRentals}]] || 0;
+        const returnedRentals = [[${returnedRentals}]] || 0;
+
+        // 2. Получаем данные жанров - ПРОСТОЙ СПОСОБ
+        const genreElements = document.querySelectorAll('.genre-item');
+        console.log('Найдено элементов жанров:', genreElements.length);
+
+        const genreLabels = [];
+        const genreData = [];
+
+        genreElements.forEach(item => {
+            const nameElement = item.querySelector('.genre-name');
+            const countElement = item.querySelector('.genre-count');
+
+            if (nameElement && countElement) {
+                const name = nameElement.textContent.trim();
+                const count = parseInt(countElement.textContent) || 0;
+
+                genreLabels.push(name);
+                genreData.push(count);
+
+                console.log('Жанр:', name, 'Количество:', count);
+            }
+        });
+
+        console.log('Всего жанров для графика:', genreLabels.length);
+
+        // 3. ПРОВЕРЯЕМ данные перед созданием графиков
+        console.log('Данные для проверки:');
+        console.log('Пользователи:', adminUsers, librarianUsers, readerUsers);
+        console.log('Книги:', totalAvailableBooks, totalRentedBooks);
+        console.log('Аренды:', activeRentals, overdueRentals, returnedRentals);
+
+        // 4. ПРОСТОЙ ТЕСТОВЫЙ ГРАФИК (убедимся что Chart.js работает)
+        const testCanvas = document.createElement('canvas');
+        testCanvas.id = 'testChart';
+        document.body.appendChild(testCanvas);
+
+        try {
+            new Chart(testCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Тест A', 'Тест B', 'Тест C'],
+                    datasets: [{
+                        label: 'Тестовые данные',
+                        data: [10, 20, 30],
+                        backgroundColor: ['#11998e', '#38ef7d', '#00d2ff']
+                    }]
+                }
+            });
+            console.log('✅ Chart.js работает нормально!');
+        } catch (e) {
+            console.error('❌ Ошибка Chart.js:', e);
+        }
+
+        // Удаляем тестовый график
+        testCanvas.remove();
+
+        // 5. ГРАФИК 1: Пользователи по ролям
+        try {
+            const usersCtx = document.getElementById('usersChart');
+            if (usersCtx && (adminUsers > 0 || librarianUsers > 0 || readerUsers > 0)) {
+                new Chart(usersCtx.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Администраторы', 'Библиотекари', 'Читатели'],
+                        datasets: [{
+                            data: [adminUsers, librarianUsers, readerUsers],
+                            backgroundColor: ['#11998e', '#38ef7d', '#00d2ff']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                console.log('✅ График пользователей создан');
+            }
+        } catch (e) {
+            console.error('Ошибка в графике пользователей:', e);
+        }
+
+        // 6. ГРАФИК 2: Статус книг
+        try {
+            const booksCtx = document.getElementById('booksChart');
+            if (booksCtx) {
+                new Chart(booksCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Доступно', 'Выдано'],
+                        datasets: [{
+                            data: [totalAvailableBooks, totalRentedBooks],
+                            backgroundColor: ['#11998e', '#38ef7d']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+                console.log('✅ График книг создан');
+            }
+        } catch (e) {
+            console.error('Ошибка в графике книг:', e);
+        }
+
+        // 7. ГРАФИК 3: Статус аренд
+        try {
+            const rentalsCtx = document.getElementById('rentalsChart');
+            if (rentalsCtx && (activeRentals > 0 || overdueRentals > 0 || returnedRentals > 0)) {
+                new Chart(rentalsCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Активные', 'Просроченные', 'Возвращенные'],
+                        datasets: [{
+                            data: [activeRentals, overdueRentals, returnedRentals],
+                            backgroundColor: ['#11998e', '#ff6b6b', '#00d2ff']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                console.log('✅ График аренд создан');
+            }
+        } catch (e) {
+            console.error('Ошибка в графике аренд:', e);
+        }
+
+        // 8. ГРАФИК 4: Топ жанров (только если есть данные)
+        try {
+            const genresCtx = document.getElementById('genresChart');
+            if (genresCtx && genreLabels.length > 0) {
+                // Берем только топ-6 жанров для читаемости
+                const topLabels = genreLabels.slice(0, 6);
+                const topData = genreData.slice(0, 6);
+
+                new Chart(genresCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: topLabels,
+                        datasets: [{
+                            label: 'Количество книг',
+                            data: topData,
+                            backgroundColor: '#11998e'
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+                console.log('✅ График жанров создан');
+            } else {
+                console.log('❌ Нет данных для графика жанров');
+            }
+        } catch (e) {
+            console.error('Ошибка в графике жанров:', e);
+        }
+
+        console.log('=== КОНЕЦ ГРАФИКОВ ===');
+    });
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -32,4 +32,9 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    // ДОБАВЬТЕ ЭТОТ СЕТТЕР ↓
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

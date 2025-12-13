@@ -23,7 +23,7 @@ public class AuthController {
                                @RequestParam String password,
                                RedirectAttributes redirectAttributes) {
         try {
-            userService.registerUser(login, password, "READER"); // Всегда создаем READER
+            userService.registerUser(login, password, "READER");
             redirectAttributes.addFlashAttribute("message", "Регистрация успешна! Теперь можете войти.");
             return "redirect:/login";
         } catch (IllegalArgumentException e) {
@@ -31,4 +31,5 @@ public class AuthController {
             return "redirect:/register";
         }
     }
+
 }

@@ -15,10 +15,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: #333;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+        }
+
+        .auth-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
             padding: 2rem;
+            width: 100%;
         }
 
         .register-container {
@@ -29,6 +38,7 @@
             width: 100%;
             max-width: 400px;
             backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
         }
 
         .logo {
@@ -111,6 +121,8 @@
             font-weight: 600;
             transition: all 0.3s ease;
             margin-top: 0.5rem;
+            display: block;
+            margin: 0 auto;
         }
 
         button[type="submit"]:hover {
@@ -135,39 +147,41 @@
         }
     </style>
 </head>
-<body>
-<div class="register-container">
-    <div class="logo">
-        <h1><span>📝</span> Регистрация</h1>
-    </div>
-
-    <!-- Сообщения об ошибках/успехе -->
-    <div th:if="${message}" class="success">
-        ✅ <span th:text="${message}"></span>
-    </div>
-    <div th:if="${error}" class="error">
-        ❌ <span th:text="${error}"></span>
-    </div>
-
-    <form action="/register" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
-        <div class="form-group">
-            <input type="text" name="login" placeholder="Логин" required>
+<body class="auth-page">
+<div class="auth-wrapper">
+    <div class="register-container">
+        <div class="logo">
+            <h1><span>📝</span> Регистрация</h1>
         </div>
 
-        <div class="form-group">
-            <div class="password-container">
-                <input type="password" name="password" id="password" placeholder="Пароль" required>
-                <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+        <!-- Сообщения об ошибках/успехе -->
+        <div th:if="${message}" class="success">
+            ✅ <span th:text="${message}"></span>
+        </div>
+        <div th:if="${error}" class="error">
+            ❌ <span th:text="${error}"></span>
+        </div>
+
+        <form action="/register" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="form-group">
+                <input type="text" name="login" placeholder="Логин" required>
             </div>
+
+            <div class="form-group">
+                <div class="password-container">
+                    <input type="password" name="password" id="password" placeholder="Пароль" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                </div>
+            </div>
+
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+
+        <div class="login-link">
+            <a href="/login">Уже есть аккаунт? Войти</a>
         </div>
-
-        <button type="submit">Зарегистрироваться</button>
-    </form>
-
-    <div class="login-link">
-        <a href="/login">Уже есть аккаунт? Войти</a>
     </div>
 </div>
 
@@ -185,5 +199,8 @@
         }
     }
 </script>
+
+<!-- Используем auth-footer -->
+<div th:replace="~{fragments/auth-footer :: auth-footer}"></div>
 </body>
 </html>

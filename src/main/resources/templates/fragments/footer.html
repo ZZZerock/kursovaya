@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
+<footer class="site-footer">
+    <div class="footer-content">
+        <!-- О проекте -->
+        <div class="footer-section">
+            <div class="footer-title">
+                <span class="footer-icon">📚</span>
+                <h3>Библиотечная система</h3>
+            </div>
+            <p class="footer-text">
+                Учебный проект по Spring Boot для управления библиотекой.
+            </p>
+        </div>
+
+        <!-- Технологии -->
+        <div class="footer-section">
+            <div class="footer-title">
+                <span class="footer-icon">⚙️</span>
+                <h3>Технологии</h3>
+            </div>
+            <div class="tech-stack">
+                <span class="tech-item">Java</span>
+                <span class="tech-item">Spring Boot</span>
+                <span class="tech-item">Thymeleaf</span>
+                <span class="tech-item">PostgreSQL</span>
+            </div>
+        </div>
+
+        <!-- Автор -->
+        <div class="footer-section">
+            <div class="footer-title">
+                <span class="footer-icon">👨‍💻</span>
+                <h3>Автор</h3>
+            </div>
+            <div class="contacts">
+                <div class="contact-item">
+                    <span class="contact-icon">📧</span>
+                    <span class="contact-text">sviridof12345@yandex.ru</span>
+                </div>
+                <div class="contact-item">
+                    <span class="contact-icon">🐙</span>
+                    <span class="contact-text">github.com/ZZZerock/kursovaya</span>
+                </div>
+            </div>
+            <a href="/about" class="author-link">
+                <span>Страница автора</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>© 2025 Библиотечная система</p>
+    </div>
+</footer>
+
+<style>
+    .site-footer {
+        background: #2c3e50;
+        color: white;
+        padding: 2rem 0 0;
+        margin-top: auto;
+        width: 100%;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 0 2rem 1.5rem;
+    }
+
+    .footer-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .footer-title h3 {
+        color: #3498db;
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    .footer-text {
+        color: #bdc3c7;
+        line-height: 1.5;
+        font-size: 0.9rem;
+    }
+
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .tech-item {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+        padding: 0.3rem 0.7rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        border: 1px solid rgba(52, 152, 219, 0.3);
+    }
+
+    .contacts {
+        margin: 1rem 0;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #bdc3c7;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .author-link {
+        display: inline-block;
+        color: #2ecc71;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border: 1px solid rgba(46, 204, 113, 0.3);
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: #95a5a6;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+        .footer-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            padding: 0 1rem 1rem;
+        }
+
+        .footer-title {
+            justify-content: center;
+        }
+
+        .tech-stack {
+            justify-content: center;
+        }
+    }
+</style>
+</html>

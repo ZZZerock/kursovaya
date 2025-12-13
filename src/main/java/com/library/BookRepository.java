@@ -3,7 +3,12 @@ package com.library;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
-    // Spring Data JPA сам создаст все нужные методы
+    List<Book> findByTitleContainingIgnoreCase(String title);
+    List<Book> findByAuthorContainingIgnoreCase(String author);
+    List<Book> findByGenreContainingIgnoreCase(String genre);
+    List<Book> findByIsbn(String isbn);
 }

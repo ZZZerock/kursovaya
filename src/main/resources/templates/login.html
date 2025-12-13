@@ -15,10 +15,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: #333;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+        }
+
+        .auth-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
             padding: 2rem;
+            width: 100%;
         }
 
         .login-container {
@@ -29,6 +38,7 @@
             width: 100%;
             max-width: 400px;
             backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
         }
 
         .logo {
@@ -99,6 +109,8 @@
             font-size: 1.1rem;
             font-weight: 600;
             transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
         }
 
         button[type="submit"]:hover {
@@ -123,35 +135,37 @@
         }
     </style>
 </head>
-<body>
-<div class="login-container">
-    <div class="logo">
-        <h1><span>📚</span> Вход в библиотеку</h1>
-    </div>
-
-    <div th:if="${param.error}" class="error">
-        ❌ Неправильный логин или пароль!
-    </div>
-
-    <form action="/login" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-
-        <div class="form-group">
-            <input type="text" name="username" placeholder="Логин" required>
+<body class="auth-page">
+<div class="auth-wrapper">
+    <div class="login-container">
+        <div class="logo">
+            <h1><span>📚</span> Вход в библиотеку</h1>
         </div>
 
-        <div class="form-group">
-            <div class="password-container">
-                <input type="password" name="password" id="password" placeholder="Пароль" required>
-                <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+        <div th:if="${param.error}" class="error">
+            ❌ Неправильный логин или пароль!
+        </div>
+
+        <form action="/login" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Логин" required>
             </div>
+
+            <div class="form-group">
+                <div class="password-container">
+                    <input type="password" name="password" id="password" placeholder="Пароль" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                </div>
+            </div>
+
+            <button type="submit">Войти</button>
+        </form>
+
+        <div class="register-link">
+            <a href="/register">Создать аккаунт</a>
         </div>
-
-        <button type="submit">Войти</button>
-    </form>
-
-    <div class="register-link">
-        <a href="/register">Создать аккаунт</a>
     </div>
 </div>
 
@@ -169,5 +183,8 @@
         }
     }
 </script>
+
+<!-- Используем auth-footer вместо footer -->
+<div th:replace="~{fragments/auth-footer :: auth-footer}"></div>
 </body>
 </html>

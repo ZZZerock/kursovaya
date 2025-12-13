@@ -115,6 +115,11 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
+        .page-title p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+
         .content-card {
             background: rgba(255, 255, 255, 0.95);
             padding: 3rem;
@@ -122,6 +127,7 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.1);
             backdrop-filter: blur(10px);
         }
+
         .content-card button[type="submit"] {
             width: 100%;
             padding: 1.2rem;
@@ -145,6 +151,7 @@
 
         .form-group {
             margin-bottom: 2rem;
+            position: relative;
         }
 
         label {
@@ -153,6 +160,11 @@
             font-weight: 600;
             color: #333;
             font-size: 1.1rem;
+        }
+
+        .required::after {
+            content: " *";
+            color: #dc3545;
         }
 
         input {
@@ -172,6 +184,46 @@
             background: white;
         }
 
+        /* Стили для сообщений */
+        .success-message {
+            background: linear-gradient(135deg, #38ef7d, #11998e);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message-global {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .field-error {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .error-input {
+            border-color: #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.3rem;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 padding: 0 1rem;
@@ -188,10 +240,13 @@
                 font-size: 2rem;
             }
 
+            .page-title p {
+                font-size: 1.1rem;
+            }
+
             .content-card {
                 padding: 2rem;
             }
-
         }
     </style>
 </head>
@@ -214,51 +269,359 @@
 <div class="main-content">
     <div class="page-title">
         <h2>➕ Добавить книгу</h2>
-        <p style="font-size: 1.3rem; opacity: 0.9;">Добавление новой книги в каталог</p>
+        <p>Добавление новой книги в каталог</p>
+    </div>
+
+    <!-- Сообщения -->
+    <div id="successMessage" class="success-message" th:if="${param.success}">
+        ✅ Книга успешно добавлена в каталог!
+    </div>
+
+    <div id="errorMessage" class="error-message-global" th:if="${error}">
+        <span th:text="${error}"></span>
     </div>
 
     <div class="content-card">
-        <form action="/books" method="post">
+        <form id="addBookForm" action="/books" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
+            <!-- Название -->
             <div class="form-group">
-                <label for="title">Название книги:</label>
-                <input type="text" id="title" name="title" placeholder="Война и мир" required>
+                <label for="title" class="required">Название книги:</label>
+                <input type="text" id="title" name="title"
+                       placeholder="Война и мир"
+                       th:value="${book != null ? book.title : ''}"
+                       required
+                       minlength="2"
+                       maxlength="200">
+                <div class="field-error" id="titleError">Название должно быть от 2 до 200 символов</div>
             </div>
 
+            <!-- Автор -->
             <div class="form-group">
-                <label for="author">Автор:</label>
-                <input type="text" id="author" name="author" placeholder="Лев Толстой" required>
+                <label for="author" class="required">Автор:</label>
+                <input type="text" id="author" name="author"
+                       placeholder="Лев Толстой"
+                       th:value="${book != null ? book.author : ''}"
+                       required
+                       minlength="2"
+                       maxlength="100">
+                <div class="field-error" id="authorError">Имя автора должно быть от 2 до 100 символов</div>
             </div>
 
+            <!-- ISBN (необязательное) -->
             <div class="form-group">
                 <label for="isbn">ISBN:</label>
-                <input type="text" id="isbn" name="isbn" placeholder="978-5-699-12014-7">
+                <input type="text" id="isbn" name="isbn"
+                       placeholder="978-5-699-12014-7 или 1974279820"
+                       th:value="${book != null ? book.isbn : ''}"
+                       maxlength="20">
+                <div class="help-text">Необязательное поле. Формат: 978-5-699-12014-7 или просто 1974279820</div>
+                <div class="field-error" id="isbnError">Максимум 20 символов (цифры и дефисы)</div>
             </div>
 
+            <!-- Год издания -->
             <div class="form-group">
-                <label for="publicationYear">Год издания:</label>
-                <input type="number" id="publicationYear" name="publicationYear" placeholder="1869" min="1000" max="2030">
+                <label for="publicationYear" class="required">Год издания:</label>
+                <input type="number" id="publicationYear" name="publicationYear"
+                       placeholder="1869"
+                       th:value="${book != null ? book.publicationYear : ''}"
+                       required
+                       min="1000"
+                       max="2030">
+                <div class="field-error" id="yearError">Год должен быть от 1000 до 2030</div>
             </div>
 
+            <!-- Жанр -->
             <div class="form-group">
                 <label for="genre">Жанр:</label>
-                <input type="text" id="genre" name="genre" placeholder="Роман">
+                <input type="text" id="genre" name="genre"
+                       placeholder="Роман"
+                       th:value="${book != null ? book.genre : ''}"
+                       maxlength="50">
+                <div class="field-error" id="genreError">Максимум 50 символов</div>
             </div>
 
+            <!-- Общее количество -->
             <div class="form-group">
-                <label for="totalCount">Общее количество:</label>
-                <input type="number" id="totalCount" name="totalCount" placeholder="5" min="1" value="1">
+                <label for="totalCount" class="required">Общее количество:</label>
+                <input type="number" id="totalCount" name="totalCount"
+                       placeholder="5"
+                       th:value="${book != null ? book.totalCount : 1}"
+                       required
+                       min="1"
+                       max="1000"
+                       value="1">
+                <div class="field-error" id="totalCountError">Количество должно быть от 1 до 1000</div>
             </div>
 
+            <!-- Доступно для выдачи -->
             <div class="form-group">
-                <label for="availableCount">Доступно для выдачи:</label>
-                <input type="number" id="availableCount" name="availableCount" placeholder="3" min="0" value="1">
+                <label for="availableCount" class="required">Доступно для выдачи:</label>
+                <input type="number" id="availableCount" name="availableCount"
+                       placeholder="3"
+                       th:value="${book != null ? book.availableCount : 1}"
+                       required
+                       min="0"
+                       max="1000"
+                       value="1">
+                <div class="field-error" id="availableCountError">Должно быть от 0 до 1000 и не больше общего количества</div>
             </div>
 
             <button type="submit">📥 Добавить книгу</button>
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addBookForm');
+        const yearInput = document.getElementById('publicationYear');
+        const isbnInput = document.getElementById('isbn');
+        const totalCountInput = document.getElementById('totalCount');
+        const availableCountInput = document.getElementById('availableCount');
+
+        const currentYear = new Date().getFullYear();
+        const maxYear = currentYear + 1;
+
+        // Устанавливаем максимальный год
+        yearInput.max = maxYear;
+        yearInput.title = `Год должен быть от 1000 до ${maxYear}`;
+
+        // Валидация в реальном времени
+        const validateField = (field) => {
+            const errorElement = document.getElementById(field.id + 'Error');
+            const value = field.value.trim();
+
+            // Скрываем ошибку по умолчанию
+            if (errorElement) {
+                errorElement.style.display = 'none';
+                field.classList.remove('error-input');
+            }
+
+            // Проверяем обязательные поля
+            if (field.hasAttribute('required') && value === '') {
+                showError(field, 'Это поле обязательно для заполнения');
+                return false;
+            }
+
+            // Для текстовых полей проверяем длину
+            if (field.type === 'text' && value !== '') {
+                const minLength = field.getAttribute('minlength');
+                const maxLength = field.getAttribute('maxlength');
+
+                if (minLength && value.length < parseInt(minLength)) {
+                    showError(field, `Минимум ${minLength} символов`);
+                    return false;
+                }
+
+                if (maxLength && value.length > parseInt(maxLength)) {
+                    showError(field, `Максимум ${maxLength} символов`);
+                    return false;
+                }
+
+                // Специальная валидация для ISBN
+                if (field.id === 'isbn' && value !== '') {
+                    if (!validateISBN(value)) {
+                        showError(field, 'Неверный формат ISBN. Только цифры и дефисы, максимум 20 символов');
+                        return false;
+                    }
+                }
+            }
+
+            // Для числовых полей
+            if (field.type === 'number' && value !== '') {
+                const numValue = parseInt(value);
+
+                if (isNaN(numValue)) {
+                    showError(field, 'Введите число');
+                    return false;
+                }
+
+                const min = field.getAttribute('min');
+                const max = field.getAttribute('max');
+
+                if (min && numValue < parseInt(min)) {
+                    showError(field, `Минимум: ${min}`);
+                    return false;
+                }
+
+                if (max && numValue > parseInt(max)) {
+                    showError(field, `Максимум: ${max}`);
+                    return false;
+                }
+
+                // Специальная проверка для года
+                if (field.id === 'publicationYear') {
+                    if (numValue < 1000 || numValue > maxYear) {
+                        showError(field, `Год должен быть от 1000 до ${maxYear}`);
+                        return false;
+                    }
+                }
+
+                // Специальная проверка для количества
+                if (field.id === 'totalCount') {
+                    if (numValue < 1) {
+                        showError(field, 'Общее количество должно быть не менее 1');
+                        return false;
+                    }
+                }
+
+                if (field.id === 'availableCount') {
+                    if (numValue < 0) {
+                        showError(field, 'Доступное количество не может быть отрицательным');
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        };
+
+        // Валидация ISBN
+        const validateISBN = (isbn) => {
+            if (isbn.length > 20) return false;
+            if (!/^[0-9\-]+$/.test(isbn)) return false;
+            if (isbn.startsWith('-') || isbn.endsWith('-')) return false;
+            if (isbn.includes('--')) return false;
+            return true;
+        };
+
+        // Показать ошибку
+        const showError = (field, message) => {
+            const errorElement = document.getElementById(field.id + 'Error');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                field.classList.add('error-input');
+            }
+        };
+
+        // Проверка соотношения количества
+        const validateCounts = () => {
+            const total = parseInt(totalCountInput.value) || 0;
+            const available = parseInt(availableCountInput.value) || 0;
+            const totalError = document.getElementById('totalCountError');
+            const availableError = document.getElementById('availableCountError');
+
+            // Скрываем ошибки
+            if (totalError) totalError.style.display = 'none';
+            if (availableError) availableError.style.display = 'none';
+            totalCountInput.classList.remove('error-input');
+            availableCountInput.classList.remove('error-input');
+
+            if (available > total) {
+                availableCountInput.classList.add('error-input');
+                if (availableError) {
+                    availableError.textContent = 'Доступное количество не может быть больше общего';
+                    availableError.style.display = 'block';
+                }
+                return false;
+            }
+
+            return true;
+        };
+
+        // Автоматическая корректировка availableCount
+        totalCountInput.addEventListener('change', function() {
+            const total = parseInt(this.value) || 0;
+            const available = parseInt(availableCountInput.value) || 0;
+
+            if (available > total) {
+                availableCountInput.value = total;
+            }
+            validateCounts();
+        });
+
+        availableCountInput.addEventListener('change', function() {
+            validateCounts();
+        });
+
+        // Валидация при вводе
+        const allInputs = form.querySelectorAll('input');
+        allInputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+                if (this.id === 'totalCount' || this.id === 'availableCount') {
+                    validateCounts();
+                }
+            });
+
+            input.addEventListener('input', function() {
+                // Скрываем ошибку при начале ввода
+                const errorElement = document.getElementById(this.id + 'Error');
+                if (errorElement) {
+                    errorElement.style.display = 'none';
+                    this.classList.remove('error-input');
+                }
+            });
+        });
+
+        // Проверка ISBN при вводе
+        if (isbnInput) {
+            isbnInput.addEventListener('blur', function() {
+                if (this.value.trim() !== '') {
+                    validateField(this);
+                }
+            });
+        }
+
+        // Валидация при отправке формы
+        form.addEventListener('submit', function(event) {
+            console.log('Проверка формы перед отправкой...');
+
+            let isValid = true;
+            const errorMessages = [];
+
+            // Проверяем все поля
+            allInputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            // Проверяем соотношение количества
+            if (!validateCounts()) {
+                isValid = false;
+            }
+
+            // Если есть ошибки, предотвращаем отправку
+            if (!isValid) {
+                event.preventDefault();
+                console.log('Форма содержит ошибки, отправка отменена');
+
+                // Показываем общее сообщение
+                const errorDiv = document.getElementById('errorMessage');
+                if (errorDiv) {
+                    errorDiv.textContent = 'Пожалуйста, исправьте ошибки в форме';
+                    errorDiv.style.display = 'block';
+
+                    // Прокрутка к первой ошибке
+                    const firstError = form.querySelector('.error-input');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+
+                return false;
+            }
+
+            console.log('Форма валидна, отправляем...');
+            return true;
+        });
+
+        // Автоматически показывать успешное сообщение
+        if (window.location.search.includes('success')) {
+            const successDiv = document.getElementById('successMessage');
+            if (successDiv) {
+                successDiv.style.display = 'block';
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    });
+</script>
+<div th:replace="fragments/footer :: footer"></div>
 </body>
 </html>

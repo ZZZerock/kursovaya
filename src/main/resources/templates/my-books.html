@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои книги - Библиотека</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FF9A9E 0%, #FAD0C4 100%);
+            min-height: 100vh;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .logo span {
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: white;
+            color: #FF9A9E;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid #FF9A9E;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn:hover {
+            background: linear-gradient(135deg, #FF9A9E, #FAD0C4);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+            border-color: transparent;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #FF9A9E, #FAD0C4);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .page-title h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        /* ОСНОВНОЕ ИЗМЕНЕНИЕ: фиксированная ширина для карточки */
+        .book-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+            width: 350px; /* ФИКСИРОВАННАЯ ШИРИНА КАК В GRID */
+            margin: 0 auto; /* Центрирование */
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .book-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #FF6B6B;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            line-height: 1.3;
+            min-height: 3.9em;
+            display: flex;
+            align-items: center;
+        }
+
+        .book-title:hover {
+            color: #FF9A9E;
+            text-decoration: underline;
+        }
+
+        .book-author {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            min-height: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .book-info {
+            margin-bottom: 1rem;
+            padding: 0.8rem;
+            background: rgba(255, 250, 250, 0.8);
+            border-radius: 10px;
+            flex-grow: 1;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .book-info div {
+            margin-bottom: 0.5rem;
+        }
+
+        /* ПЛАШКА ДАТ - ФИКСИРОВАННАЯ ШИРИНА */
+        .due-date-container {
+            min-height: 110px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem 0;
+            width: 306px; /* 350px - 2rem*2 padding */
+        }
+
+        .due-date {
+            padding: 0.8rem;
+            border-radius: 15px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 306px; /* ФИКСИРОВАННАЯ ШИРИНА В ПИКСЕЛЯХ */
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.3;
+        }
+
+        /* Гарантируем одинаковые размеры для всех статусов */
+        .due-normal, .due-soon, .due-overdue {
+            height: 90px;
+            width: 306px; /* ФИКСИРОВАННАЯ ШИРИНА В ПИКСЕЛЯХ */
+        }
+
+        /* Делаем текст более компактным */
+        .due-soon div, .due-normal div, .due-overdue div {
+            margin: 2px 0;
+            padding: 0;
+        }
+
+        /* Для многострочного текста */
+        .due-soon {
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+
+        /* Нормальный срок (более 3 дней) */
+        .due-normal {
+            background: linear-gradient(135deg, #38ef7d, #11998e);
+            color: white;
+            animation: pulse-green 2s infinite;
+        }
+
+        /* Скоро срок (менее 3 дней) */
+        .due-soon {
+            background: linear-gradient(135deg, #ffa726, #ff9800);
+            color: white;
+            animation: pulse-orange 1s infinite;
+            font-weight: 800;
+        }
+
+        /* Просрочено */
+        .due-overdue {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            animation: pulse-red 0.5s infinite;
+            font-weight: 800;
+        }
+
+        /* Анимации */
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(56, 239, 125, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(56, 239, 125, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 239, 125, 0); }
+        }
+
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 167, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 167, 38, 0); }
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+
+        /* КНОПКА - ТАКАЯ ЖЕ ШИРИНА В ПИКСЕЛЯХ */
+        .return-btn {
+            width: 306px; /* ФИКСИРОВАННАЯ ШИРИНА В ПИКСЕЛЯХ */
+            padding: 12px;
+            background: linear-gradient(135deg, #FF6B6B, #FF9A9E);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            margin-top: auto;
+            display: block;
+        }
+
+        .return-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(135deg, #FF9A9E, #FF6B6B);
+        }
+
+        /* Форма тоже фиксированной ширины */
+        form[th\\:action] {
+            width: 306px;
+            display: block;
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 4rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            color: #666;
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Модальное окно для эмуляции книги */
+        .book-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 3rem;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-cover {
+            width: 200px;
+            height: 280px;
+            background: linear-gradient(135deg, #FF9A9E, #FAD0C4);
+            margin: 0 auto 2rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .book-content {
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .book-content h3 {
+            color: #FF6B6B;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .page-title h2 {
+                font-size: 2rem;
+            }
+
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .book-card {
+                width: 100%; /* На мобилках 100% */
+                max-width: 350px;
+                padding: 1.5rem;
+                min-height: 450px;
+            }
+
+            .due-date-container,
+            .due-date,
+            .due-normal, .due-soon, .due-overdue,
+            .return-btn,
+            form[th\\:action] {
+                width: calc(100% - 3rem) !important; /* 100% минус padding */
+            }
+
+            .modal-content {
+                padding: 2rem;
+                width: 95%;
+            }
+
+            .book-title {
+                min-height: 3em;
+                font-size: 1.3rem;
+            }
+
+            .due-date {
+                font-size: 0.9rem;
+                height: 90px;
+                padding: 0.8rem;
+            }
+        }
+
+        /* Дополнительные стили для улучшенной структуры */
+        .status-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 4px solid #FF6B6B;
+        }
+    </style>
+</head>
+<body>
+<!-- Шапка -->
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <h1><span>📚</span> Библиотечная система</h1>
+        </div>
+        <div class="header-actions">
+            <a href="/" class="back-btn">← Назад в меню</a>
+            <form action="/logout" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="logout-btn">🚪 Выйти</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Основной контент -->
+<div class="main-content">
+    <div class="page-title">
+        <h2>📚 Мои книги</h2>
+        <p style="font-size: 1.3rem; opacity: 0.9;">Книги, которые вы взяли в библиотеке</p>
+    </div>
+
+    <div th:if="${myRentals.isEmpty()}" class="no-books">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">📖</div>
+        <h3>У вас пока нет взятых книг</h3>
+        <p style="margin-top: 1rem;">Перейдите в каталог книг, чтобы выбрать книгу для чтения</p>
+        <a href="/books" style="display: inline-block; margin-top: 2rem; padding: 12px 24px;
+           background: linear-gradient(135deg, #FF9A9E, #FAD0C4); color: white;
+           text-decoration: none; border-radius: 25px; font-weight: 600;">
+            Перейти в каталог
+        </a>
+    </div>
+
+    <div th:unless="${myRentals.isEmpty()}" class="books-grid">
+        <div th:each="rental : ${myRentals}"
+             th:with="today=${#temporals.createNow().toLocalDate()},
+                     daysDiff=${T(java.time.temporal.ChronoUnit).DAYS.between(today, rental.dueDate)}"
+             class="book-card">
+
+            <!-- Кликабельное название книги -->
+            <div class="book-title"
+                 th:attr="data-book-id=${rental.book.id},
+                         data-book-title=${rental.book.title},
+                         data-book-author=${rental.book.author},
+                         data-book-genre=${rental.book.genre ?: 'Не указан'}"
+                 onclick="openBookModal(this)">
+                <span th:text="${rental.book.title}"></span>
+            </div>
+
+            <div class="book-author" th:text="${rental.book.author}"></div>
+
+            <div class="book-info">
+                <div><strong>Жанр:</strong> <span th:text="${rental.book.genre ?: 'Не указан'}"></span></div>
+                <div><strong>Взято:</strong>
+                    <span th:text="${#temporals.format(rental.rentalDate, 'dd.MM.yyyy')}"></span>
+                </div>
+            </div>
+
+            <!-- Умный блок срока сдачи -->
+            <div class="due-date-container">
+                <div th:if="${today.isAfter(rental.dueDate)}" class="due-date due-overdue">
+                    <div>📅 ⚠️ ПРОСРОЧЕНО!</div>
+                    <div>Вернуть до:</div>
+                    <div><strong th:text="${#temporals.format(rental.dueDate, 'dd.MM.yyyy')}"></strong></div>
+                </div>
+
+                <div th:unless="${today.isAfter(rental.dueDate)}">
+                    <div th:if="${daysDiff <= 3}" class="due-date due-soon">
+                        <div>📅 ⚠️ СКОРО СРОК!</div>
+                        <div>Вернуть до:</div>
+                        <div><strong th:text="${#temporals.format(rental.dueDate, 'dd.MM.yyyy')}"></strong></div>
+                        <div style="margin-top: 5px; font-size: 0.9em;">
+                            Осталось дней: <strong th:text="${daysDiff}"></strong>
+                        </div>
+                    </div>
+
+                    <div th:unless="${daysDiff <= 3}" class="due-date due-normal">
+                        <div>📅 Вернуть до:</div>
+                        <div><strong th:text="${#temporals.format(rental.dueDate, 'dd.MM.yyyy')}"></strong></div>
+                        <div style="margin-top: 5px; font-size: 0.9em;">
+                            Осталось дней: <strong th:text="${daysDiff}"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form th:action="@{/books/{id}/return(id=${rental.book.id})}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="return-btn">📚 Вернуть книгу</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для эмуляции книги -->
+<div id="bookModal" class="book-modal">
+    <div class="modal-content">
+        <button class="close-modal" onclick="closeBookModal()">×</button>
+
+        <div class="book-cover" id="bookCover">
+            📖
+        </div>
+
+        <div class="book-content" id="bookContent">
+            <h3 id="modalBookTitle">Название книги</h3>
+            <p><strong>Автор:</strong> <span id="modalBookAuthor"></span></p>
+            <p><strong>Жанр:</strong> <span id="modalBookGenre"></span></p>
+            <hr style="margin: 2rem 0;">
+
+            <h4>Содержание</h4>
+            <p>Это демонстрационная версия книги. В реальной библиотечной системе здесь был бы полный текст книги или PDF-просмотрщик.</p>
+
+            <p>Вы можете представить, что читаете интересный роман, увлекательную научную литературу или учебник. В настоящей системе книги были бы доступны для чтения онлайн или скачивания в зависимости от политики библиотеки.</p>
+
+            <p>Для тестирования системы вы можете "почитать" эту книгу несколько минут, а затем вернуть её, нажав кнопку "Вернуть книгу" на карточке.</p>
+
+            <div class="status-info">
+                <p><strong>Статус:</strong> Взято для чтения</p>
+                <p><strong>Доступно до:</strong> <span id="modalDueDate"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Функция для открытия модального окна книги
+    function openBookModal(element) {
+        const bookId = element.getAttribute('data-book-id');
+        const bookTitle = element.querySelector('span').textContent;
+        const bookAuthor = element.getAttribute('data-book-author');
+        const bookGenre = element.getAttribute('data-book-genre');
+
+        // Устанавливаем данные в модальное окно
+        document.getElementById('modalBookTitle').textContent = bookTitle;
+        document.getElementById('modalBookAuthor').textContent = bookAuthor;
+        document.getElementById('modalBookGenre').textContent = bookGenre;
+
+        // Находим dueDate из карточки
+        const card = element.closest('.book-card');
+        const dueDateElement = card.querySelector('.due-date strong');
+        let dueDate = '';
+        if (dueDateElement) {
+            dueDate = dueDateElement.textContent.trim();
+        }
+        document.getElementById('modalDueDate').textContent = dueDate;
+
+        // Создаем обложку с первой буквой названия
+        const firstLetter = bookTitle.charAt(0).toUpperCase();
+        const colors = ['#FF9A9E', '#FAD0C4', '#FF6B6B', '#FFA726', '#38EF7D', '#3A7BD5'];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        document.getElementById('bookCover').innerHTML = `
+            <div style="font-size: 5rem; color: white; font-weight: bold;">
+                ${firstLetter}
+            </div>
+        `;
+        document.getElementById('bookCover').style.background = `linear-gradient(135deg, ${randomColor}, ${randomColor}80)`;
+
+        // Показываем модальное окно
+        document.getElementById('bookModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Функция для закрытия модального окна
+    function closeBookModal() {
+        document.getElementById('bookModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Закрытие модального окна при клике вне его
+    document.getElementById('bookModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeBookModal();
+        }
+    });
+
+    // Закрытие модального окна на Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeBookModal();
+        }
+    });
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

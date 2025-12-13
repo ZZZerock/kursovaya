@@ -325,6 +325,68 @@
             font-size: 1.1rem;
         }
 
+        /* Кнопки как в управлении пользователями */
+        .borrow-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #38ef7d, #11998e);
+            color: white;
+            width: 100%;
+            max-width: 150px;
+            box-shadow: 0 4px 10px rgba(56, 239, 125, 0.2);
+        }
+
+        .borrow-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(56, 239, 125, 0.3);
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .return-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            width: 100%;
+            max-width: 150px;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
+        }
+
+        .return-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.3);
+            background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+        }
+
+        .action-message {
+            color: #834d9b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: rgba(131, 77, 155, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            max-width: 150px;
+        }
+
+        .due-date {
+            color: #834d9b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 padding: 0 1rem;
@@ -370,6 +432,17 @@
             .books-table td {
                 padding: 0.8rem;
             }
+
+            .borrow-btn, .return-btn {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                max-width: 130px;
+            }
+
+            .action-message {
+                font-size: 0.8rem;
+                max-width: 130px;
+            }
         }
     </style>
 </head>
@@ -389,6 +462,34 @@
     </div>
 </div>
 
+<!-- Уведомления -->
+<div style="max-width: 1400px; margin: 1rem auto; padding: 0 2rem;">
+    <div th:if="${param.success == 'borrowed'}"
+         style="background: linear-gradient(135deg, #38ef7d, #11998e);
+                color: white; padding: 1rem; border-radius: 10px;
+                margin-bottom: 1rem; text-align: center;">
+        ✅ Книга успешно взята! Не забудьте вернуть в течение 14 дней.
+    </div>
+
+    <div th:if="${param.success == 'returned'}"
+         style="background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                color: white; padding: 1rem; border-radius: 10px;
+                margin-bottom: 1rem; text-align: center;">
+        ✅ Книга успешно возвращена!
+    </div>
+
+    <div th:if="${param.error}"
+         style="background: linear-gradient(135deg, #ffa726, #ff9800);
+                color: white; padding: 1rem; border-radius: 10px;
+                margin-bottom: 1rem; text-align: center;">
+        <span th:if="${param.error == 'not_available'}">⚠️ Книга временно недоступна. Попробуйте позже.</span>
+        <span th:if="${param.error == 'already_borrowed'}">⚠️ Вы уже взяли эту книгу. Сначала верните ее, чтобы взять снова.</span>
+        <span th:if="${param.error == 'not_reader'}">⛔ Только читатели могут брать книги. Ваша роль:
+            <span th:text="${#authentication?.authorities?[0]?.authority}"></span>
+        </span>
+    </div>
+</div>
+
 <div class="main-content">
     <div class="page-title">
         <h2>📖 Каталог книг</h2>
@@ -405,7 +506,10 @@
                 <div class="stat-number" th:text="${availableBooksCount}">0</div>
                 <div class="stat-label">Доступно сейчас</div>
             </div>
-            <a href="/books/new" class="stat-card add-book-card">
+            <!-- ПОКАЗЫВАТЬ ТОЛЬКО ДЛЯ LIBRARIAN И ADMIN -->
+            <a th:if="${isLibrarian or isAdmin}"
+               href="/books/new"
+               class="stat-card add-book-card">
                 <div class="stat-number">➕</div>
                 <div class="stat-label">Добавить книгу</div>
             </a>
@@ -414,12 +518,10 @@
 
     <!-- Поиск и фильтры -->
     <div class="search-filters">
-        <!-- Строка поиска на всю ширину -->
         <div class="search-row">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Поиск по названию или автору..." />
         </div>
 
-        <!-- Строка фильтров на всю ширину -->
         <div class="filters-row">
             <select id="statusFilter" class="filter-select">
                 <option value="">Все статусы</option>
@@ -459,6 +561,7 @@
                 <th data-sort="total">Всего</th>
                 <th data-sort="available">Доступно</th>
                 <th data-sort="status">Статус</th>
+                <th>Действия</th>
             </tr>
             </thead>
             <tbody id="booksTableBody">
@@ -475,6 +578,55 @@
                     <span th:if="${book.availableCount > 1}" class="available">✅ В наличии</span>
                     <span th:if="${book.availableCount == 1}" class="warning">⚠️ Мало экземпляров</span>
                     <span th:if="${book.availableCount == 0}" class="not-available">❌ Нет в наличии</span>
+                </td>
+                <td>
+                    <!-- ВСЕ действия только если isReader = true -->
+                    <div th:if="${isReader}">
+                        <!-- Если пользователь уже взял эту книгу -->
+                        <div th:if="${userBookRentals.containsKey(book.id)}">
+            <span class="due-date">
+                📅 Вернуть до:
+                <span th:text="${#temporals.format(userBookRentals.get(book.id).dueDate, 'dd.MM.yyyy')}"></span>
+            </span>
+                            <form th:action="@{/books/{id}/return(id=${book.id})}" method="post" style="margin: 0;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="return-btn">📚 Вернуть</button>
+                            </form>
+                        </div>
+
+                        <!-- Если книга доступна и пользователь еще не взял ее -->
+                        <div th:unless="${userBookRentals.containsKey(book.id)}">
+                            <form th:if="${book.availableCount > 0}"
+                                  th:action="@{/books/{id}/borrow(id=${book.id})}"
+                                  method="post" style="margin: 0;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="borrow-btn">📖 Взять книгу</button>
+                            </form>
+                            <span th:if="${book.availableCount == 0}" class="action-message">
+                Недоступно
+            </span>
+                        </div>
+                    </div>
+
+                    <!-- Если НЕ читатель (админ/библиотекарь) -->
+                    <div th:unless="${isReader}" style="min-width: 180px; white-space: normal;">
+                        <div style="
+                            color: #834d9b;
+                            font-size: 0.85rem;
+                            font-weight: 600;
+                            padding: 10px;
+                            background: rgba(131, 77, 155, 0.1);
+                            border-radius: 10px;
+                            text-align: center;
+                            line-height: 1.3;
+                            min-height: 60px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            ⛔ Только для<br>читателей
+                        </div>
+                    </div>
                 </td>
             </tr>
             </tbody>
@@ -498,11 +650,6 @@
 
         let allBooks = Array.from(booksTableBody.querySelectorAll('tr'));
 
-        // Отладочная информация
-        console.log('Все жанры в выпадающем списке:', Array.from(genreFilter.options).map(opt => opt.value));
-        console.log('Жанры книг в таблице:', Array.from(new Set(allBooks.map(book => book.cells[4].textContent.trim()))));
-
-        // Функция фильтрации и сортировки
         function filterAndSortBooks() {
             const searchTerm = searchInput.value.toLowerCase();
             const statusValue = statusFilter.value;
@@ -515,10 +662,8 @@
                 const genre = book.cells[4].textContent.trim();
                 const availableCount = parseInt(book.cells[7].textContent);
 
-                // Поиск по названию и автору
                 const matchesSearch = title.includes(searchTerm) || author.includes(searchTerm);
 
-                // Фильтр по статусу
                 let matchesStatus = true;
                 if (statusValue === 'available') {
                     matchesStatus = availableCount > 1;
@@ -528,13 +673,11 @@
                     matchesStatus = availableCount === 0;
                 }
 
-                // Фильтр по жанру
                 const matchesGenre = !genreValue || genre === genreValue;
 
                 return matchesSearch && matchesStatus && matchesGenre;
             });
 
-            // Сортировка
             filteredBooks.sort((a, b) => {
                 const aCells = a.cells;
                 const bCells = b.cells;
@@ -552,16 +695,11 @@
                         return parseInt(bCells[3].textContent) - parseInt(aCells[3].textContent);
                     case 'year-asc':
                         return parseInt(aCells[3].textContent) - parseInt(bCells[3].textContent);
-                    case 'available-desc':
-                        return parseInt(bCells[7].textContent) - parseInt(aCells[7].textContent);
-                    case 'available-asc':
-                        return parseInt(aCells[7].textContent) - parseInt(bCells[7].textContent);
                     default:
                         return 0;
                 }
             });
 
-            // Обновление таблицы
             booksTableBody.innerHTML = '';
             if (filteredBooks.length > 0) {
                 filteredBooks.forEach(book => booksTableBody.appendChild(book));
@@ -571,7 +709,6 @@
             }
         }
 
-        // Обработчики событий
         searchInput.addEventListener('input', filterAndSortBooks);
         statusFilter.addEventListener('change', filterAndSortBooks);
         genreFilter.addEventListener('change', filterAndSortBooks);
@@ -585,7 +722,6 @@
             filterAndSortBooks();
         });
 
-        // Сортировка по клику на заголовок
         tableHeaders.forEach(header => {
             header.addEventListener('click', function() {
                 const sortType = this.getAttribute('data-sort');
@@ -603,9 +739,9 @@
             });
         });
 
-        // Инициализация
         filterAndSortBooks();
     });
 </script>
+<div th:replace="fragments/footer :: footer"></div>
 </body>
 </html>
